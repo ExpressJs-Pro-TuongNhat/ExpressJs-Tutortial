@@ -100,6 +100,19 @@ app.put("/api/users/:id", (request, response) => {
   return response.status(200).send({ msg: "User updated successfully.", user: mockUsers[findIndex] });
 });
 
+app.patch("/api/users/:id", (request, response) => {
+  const {
+    params: { id },
+    body,
+  } = request;
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) return response.status(400).send({ msg: "Bad request. Invalid ID." });
+  const findIndex = mockUsers.findIndex((user) => user.id === parsedId);
+  if (findIndex === -1) return response.status(404).send({ msg: "User not found." });
+  mockUsers[findIndex] = { ...mockUsers[findIndex], ...body };
+  return response.status(200).send({ msg: "User updated successfully.", user: mockUsers[findIndex] });
+})
+
 app.get("/api/users/:id", (request, response) => {
   console.log(request.params);
   const parsedId = parseInt(request.params.id);
