@@ -113,6 +113,18 @@ app.patch("/api/users/:id", (request, response) => {
   return response.status(200).send({ msg: "User updated successfully.", user: mockUsers[findIndex] });
 })
 
+app.delete("/api/users/:id", (request, response) => {
+  const {
+    params: { id }
+  } = request;
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) return response.status(400).send({ msg: "Bad request. Invalid ID." });
+  const findIndex = mockUsers.findIndex((user) => user.id === parsedId);
+  if (findIndex === -1) return response.status(404).send({ msg: "User not found." });
+  mockUsers.splice(findIndex, 1);
+  return response.status(200).send({ msg: "User deleted successfully.", user: mockUsers });
+})
+
 app.get("/api/users/:id", (request, response) => {
   console.log(request.params);
   const parsedId = parseInt(request.params.id);
