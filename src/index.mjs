@@ -1,4 +1,5 @@
 import express, { request, response } from 'express';
+import { query, validationResult, body, matchedData } from 'express-validator';
 
 const app = express();
 
@@ -83,25 +84,46 @@ app.get("/", (request, response) => {
   response.status(201).send({ msg: 'Hello' });
 });
 
-app.get("/api/users", (request, response) => {
-  const { query: { filter, value } } = request;
-  if (filter && value) {
-    return response.send(
-      mockUsers.filter((user) => user[filter].includes(value))
-    );
-  }
-  return response.send(mockUsers);
-});
+app.get(
+  "/api/users",
+  query("filter")
+    .isLength({ min: 3, max: 10 }).withMessage("Filter must be between 3 and 10 characters.")
+    .isString().withMessage("Filter must be a string.")
+    .notEmpty().withMessage("Filter is required.")
+    .trim(),
+  (request, response) => {
+    const result = validationResult(request);
+    const { query: { filter, value } } = request;
+    if (filter && value) {
+      return response.send(
+        mockUsers.filter((user) => user[filter].includes(value))
+      );
+    }
+    return response.send(mockUsers);
+  });
 
-app.post("/api/users", (request, response) => {
-  const { body } = request;
-  const newUser = {
-    id: mockUsers.length + 1,
-    ...body
-  };
-  mockUsers.push(newUser);
-  return response.status(201).send(newUser);
-})
+app.post(
+  "/api/users",
+  [
+    body("username")
+      .isLength({ min: 3, max: 32 }).withMessage("Username must be between 3 and 10 characters.")
+      .isString().withMessage("Username must be a string.")
+      .notEmpty().withMessage("Username is required."),
+    body("displayName").notEmpty().withMessage("Display name is required.")
+  ],
+  (request, response) => {
+    const data = matchedData(request);
+    const result = validationResult(request);
+    if(!result.isEmpty()) {
+      return response.status(400).send({ msg: "Validation failed.", errors: result.array() });
+    }
+    const newUser = {
+      id: mockUsers.length + 1,
+      ...data
+    };
+    mockUsers.push(newUser);
+    return response.status(201).send(newUser);
+  })
 
 app.put("/api/users/:id", resolveIndexUserById, (request, response) => {
   const { findIndex, body } = request;
