@@ -14,6 +14,14 @@ router.get(
         .notEmpty().withMessage("Filter is required.")
         .trim(),
     (request, response) => {
+        console.log("Session ID at User: ", request.session.id);
+        request.sessionStore.get(request.session.id, (err, sessionData) => {
+            if (err) {
+                console.log("Error: ",err);
+                throw err;
+            }
+            console.log("Session data: ",sessionData);
+        });
         const result = validationResult(request);
         const { query: { filter, value } } = request;
         if (filter && value) {
