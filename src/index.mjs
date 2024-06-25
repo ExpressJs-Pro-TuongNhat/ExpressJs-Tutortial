@@ -5,8 +5,14 @@ import session from 'express-session';
 import { mockUsers } from './utils/constants.mjs';
 import passport from 'passport';
 import './strategies/local-strategy.mjs';
+import mongoose from 'mongoose';
 
 const app = express();
+
+mongoose
+  .connect("mongodb+srv://nhatnguyenvan25:paQupocujLCTWeN1@cluster0.quw8hc5.mongodb.net/")
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(err => console.log(err));
 
 app.use(express.json());
 app.use(cookieParser("secret"));
@@ -33,9 +39,9 @@ app.post(
 );
 
 app.post("/api/auth/logout", (request, response) => {
-  if(!request.user) return response.sendStatus(401);
+  if (!request.user) return response.sendStatus(401);
   request.logout((err) => {
-    if(err) return response.sendStatus(400);
+    if (err) return response.sendStatus(400);
     response.sendStatus(200);
   })
 });

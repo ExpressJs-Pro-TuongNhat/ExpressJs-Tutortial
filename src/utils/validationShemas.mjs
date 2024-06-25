@@ -20,5 +20,8 @@ export const createUserValidationSchema = {
             errorMessage: "Display name must be a string."
         },
         trim: true,
+    },
+    password: {
+        notEmpty: true,
     }
 };

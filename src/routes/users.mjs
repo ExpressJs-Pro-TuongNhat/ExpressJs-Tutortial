@@ -3,9 +3,10 @@ import { query, validationResult, matchedData, checkSchema } from "express-valid
 import { mockUsers } from "../utils/constants.mjs";
 import { createUserValidationSchema } from "../utils/validationShemas.mjs";
 import { resolveIndexUserById } from "../utils/middlewares.mjs";
+import { User } from "../mongoose/schemas/User.mjs";
 
 
-const router = Router();    
+const router = Router();
 router.get(
     "/api/users",
     query("filter")
@@ -17,10 +18,10 @@ router.get(
         console.log("Session ID at User: ", request.session.id);
         request.sessionStore.get(request.session.id, (err, sessionData) => {
             if (err) {
-                console.log("Error: ",err);
+                console.log("Error: ", err);
                 throw err;
             }
-            console.log("Session data: ",sessionData);
+            console.log("Session data: ", sessionData);
         });
         const result = validationResult(request);
         const { query: { filter, value } } = request;
@@ -49,18 +50,20 @@ router.get("/api/users/:id", (request, response) => {
 router.post(
     "/api/users",
     checkSchema(createUserValidationSchema),
-    (request, response) => {
-        const data = matchedData(request);
+    async (request, response) => {
         const result = validationResult(request);
-        if (!result.isEmpty()) {
-            return response.status(400).send({ msg: "Validation failed.", errors: result.array() });
+        if (!result.isEmpty()) return response.status(400).send(result.array());
+
+        const data = matchedData(request);
+
+        const newUser = new User(data);
+        try {
+            const saveUser = await newUser.save();
+            return response.status(201).send({ msg: "User created successfully.", user: saveUser });
+        } catch (err) {
+            console.log("Error: ", err);
+            return sendStatus(400);
         }
-        const newUser = {
-            id: mockUsers.length + 1,
-            ...data
-        };
-        mockUsers.push(newUser);
-        return response.status(201).send(newUser);
     }
 );
 
