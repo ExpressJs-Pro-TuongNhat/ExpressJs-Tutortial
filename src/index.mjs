@@ -5,7 +5,8 @@ import session from 'express-session';
 import { mockUsers } from './utils/constants.mjs';
 import passport from 'passport';
 import './strategies/local-strategy.mjs';
-import mongoose from 'mongoose';
+import mongoose, { trusted } from 'mongoose';
+import MongoStore from 'connect-mongo';
 
 const app = express();
 
@@ -22,7 +23,10 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     maxAge: 60000 * 60,
-  }
+  },
+  store: MongoStore.create({
+    client: mongoose.connection.getClient(),
+  })
 }));
 
 app.use(passport.initialize());
@@ -47,6 +51,8 @@ app.post("/api/auth/logout", (request, response) => {
 });
 
 app.get("/api/auth/status", (request, response) => {
+  console.log("Session: ", request.session);
+  console.log("\nSessionID: ", request.sessionID);
   return request.user ? response.send(request.user) : response.sendStatus(401);
 });
 

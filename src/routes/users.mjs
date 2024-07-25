@@ -17,6 +17,7 @@ router.get(
         .trim(),
     (request, response) => {
         console.log("Session ID at User: ", request.session.id);
+        console.log("SessionStore: ",request.sessionStore);
         request.sessionStore.get(request.session.id, (err, sessionData) => {
             if (err) {
                 console.log("Error: ", err);
